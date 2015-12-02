@@ -1,19 +1,25 @@
 package io.codetail.circualrevealsample;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.widget.Toast;
 
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.view.ViewHelper;
@@ -22,13 +28,12 @@ import java.lang.ref.WeakReference;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import io.codetail.animation.Animator;
+import io.codetail.animation.SupportAnimator;
 import io.codetail.animation.ViewAnimationUtils;
-import io.codetail.circualrevealsample.widget.FloatingActionButton;
 import io.codetail.circualrevealsample.widget.ViewUtils;
 import io.codetail.widget.RevealFrameLayout;
 
-public class MainActivity extends ActionBarActivity{
+public class MainActivity extends AppCompatActivity{
 
     @InjectView(R.id.toolbar)
     Toolbar mToolbar;
@@ -41,6 +46,8 @@ public class MainActivity extends ActionBarActivity{
 
     LinearLayoutManager mLayoutManager;
     RecycleAdapter mCardsAdapter;
+
+    private SupportAnimator mAnimator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,34 +84,78 @@ public class MainActivity extends ActionBarActivity{
             @Override
             public void onClick(View v) {
 
-                View myView = ((RevealFrameLayout) mCardsGroup.getChildAt(0)).getChildAt(0);
+                if(mAnimator != null && !mAnimator.isRunning()){
+                    mAnimator = mAnimator.reverse();
+                    mAnimator.addListener(new SupportAnimator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart() {
 
-                // get the center for the clipping circle
-                //int cx = (myView.getLeft() + myView.getRight()) / 2;
-                //int cy = (myView.getTop() + myView.getBottom()) / 2;
-                int cx = myView.getRight() - 100;
-                int cy = myView.getBottom() - 100;
+                        }
 
-                // get the final radius for the clipping circle
-                int finalRadius = Math.max(myView.getWidth(), myView.getHeight()) + 100;
+                        @Override
+                        public void onAnimationEnd() {
+                            mAnimator = null;
+                        }
 
-                Animator animator =
-                        ViewAnimationUtils.createCircularReveal(myView, cx, cy, 0, finalRadius);
-                animator.setInterpolator(new AccelerateInterpolator());
-                animator.setDuration(500);
+                        @Override
+                        public void onAnimationCancel() {
 
-                if(Animator.LOLLIPOP){
-                    android.animation.Animator a = animator.getNativeAnimator();
-                }else{
-                    ObjectAnimator a = (ObjectAnimator)
-                            animator.getSupportAnimator();
-                    a.setAutoCancel(true);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat() {
+
+                        }
+                    });
+                }else if(mAnimator != null){
+                    mAnimator.cancel();
+                    return;
+                }else {
+
+                    final View myView = ((RevealFrameLayout) mCardsGroup.getChildAt(0)).getChildAt(0);
+
+                    // get the center for the clipping circle
+                    //int cx = (myView.getLeft() + myView.getRight()) / 2;
+                    //int cy = (myView.getTop() + myView.getBottom()) / 2;
+                    int cx = myView.getRight();
+                    int cy = myView.getBottom();
+
+                    // get the final radius for the clipping circle
+                    float finalRadius = hypo(myView.getWidth(), myView.getHeight());
+
+                    mAnimator = ViewAnimationUtils.createCircularReveal(myView, cx, cy, 0, finalRadius);
+                    mAnimator.addListener(new SupportAnimator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart() {
+                        }
+
+                        @Override
+                        public void onAnimationEnd() {
+                            Toast.makeText(getApplicationContext(), "Done", Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        public void onAnimationCancel() {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat() {
+
+                        }
+                    });
                 }
 
-                animator.start();
+                mAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+                mAnimator.setDuration(1500);
+                mAnimator.start();
             }
         });
 
+    }
+
+    static float hypo(int a, int b){
+        return (float) Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
     }
 
     @Override
@@ -252,7 +303,6 @@ public class MainActivity extends ActionBarActivity{
         public void hide(final View target, float distance){
             ObjectAnimator animator = ObjectAnimator.ofFloat(target, "translationY",
                     ViewHelper.getTranslationY(target), distance);
-            animator.setAutoCancel(true);
             animator.setInterpolator(DECELERATE);
             animator.start();
         }
@@ -260,11 +310,33 @@ public class MainActivity extends ActionBarActivity{
         public void show(final View target){
             ObjectAnimator animator = ObjectAnimator.ofFloat(target, "translationY",
                     ViewHelper.getTranslationY(target), 0f);
-            animator.setAutoCancel(true);
             animator.setInterpolator(ACCELERATE);
             animator.start();
         }
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent = null;
+
+        switch (item.getItemId()){
+            case R.id.sampl2:
+                intent = new Intent(this, Sample2Activity.class);
+                break;
+
+            case R.id.sampl3:
+                intent = new Intent(this, Sample3Activity.class);
+                break;
+        }
+
+        startActivity(intent);
+        return intent != null;
+    }
 }

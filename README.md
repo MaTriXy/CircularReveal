@@ -6,12 +6,12 @@ Lollipop ViewAnimationUtils.createCircularReveal for everyone 2.3+
 <img src="http://7sbnrp.com1.z0.glb.clouddn.com/lollipop2-CircularReveal.gif" />
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=_vVpwzYb4Dg
-" target="_blank"><img src="http://img.youtube.com/vi/_vVpwzYb4Dg/0.jpg" 
+" target="_blank">Yotube Video <br /> <img src="http://img.youtube.com/vi/_vVpwzYb4Dg/0.jpg" 
 alt="Ripple DEMO" width="320" height="240" border="10" /></a>
 
 Sample
 ======
-<a href="https://github.com/03uk/CircularReveal/releases/tag/1.0.1"> Sample & .aar file </a>
+<a href="https://github.com/ozodrukh/CircularReveal/releases"> Sample & .aar file </a>
 
 Note
 ====
@@ -29,7 +29,7 @@ Use regular `RevealFrameLayout` & `RevealLinearLayout` don't worry, only target 
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     
-    <!-- Put more views here if you want, it's stock frame layout from Lollipop :)   -->
+    <!-- Put more views here if you want, it's stock frame layout  -->
 
     <android.support.v7.widget.CardView
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -59,16 +59,63 @@ Use regular `RevealFrameLayout` & `RevealLinearLayout` don't worry, only target 
     int cy = (myView.getTop() + myView.getBottom()) / 2;
 
     // get the final radius for the clipping circle
-    int finalRadius = Math.max(myView.getWidth(), myView.getHeight());
+    int dx = Math.max(cx, myView.getWidth() - cx);
+    int dy = Math.max(cy, myView.getHeight() - cy);
+    float finalRadius = (float) Math.hypot(dx, dy);
 
-    ObjectAnimator animator = (ObjectAnimator)
+    SupportAnimator animator =
             ViewAnimationUtils.createCircularReveal(myView, cx, cy, 0, finalRadius);
-    animator.setInterpolator(new AccelerateInterpolator());
-    animator.setDuration(500);
-    animator.setAutoCancel(true);
+    animator.setInterpolator(new AccelerateDecelerateInterpolator());
+    animator.setDuration(1500);
     animator.start();
 
 ```
+
+####API that need to mention 
+
+#####Cancel it! 
+
+```java
+
+   SupportAnimator animator = ... ;
+   animator.cancel();         
+
+```
+
+#####Reverse it!
+
+```java
+
+   SupportAnimator animator = ... ;
+   animator = animator.reverse(); // override with new one
+
+```
+
+How to add dependency
+=====================
+
+This library is not released in Maven Central, but instead you can use [JitPack](https://www.jitpack.io/)
+
+add remote maven url
+
+```groovy
+	repositories {
+	    maven {
+	        url "https://jitpack.io"
+	    }
+	}
+```
+
+then add a library dependency
+
+```groovy
+	dependencies {
+	    compile ('com.github.ozodrukh:CircularReveal:1.1.1@aar') {
+	        transitive = true;
+	    }
+	}
+```
+
 
 License
 --------

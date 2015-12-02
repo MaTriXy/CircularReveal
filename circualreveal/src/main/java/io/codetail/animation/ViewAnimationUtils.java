@@ -1,6 +1,7 @@
 package io.codetail.animation;
 
-import android.graphics.Rect;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
@@ -9,7 +10,17 @@ import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.ViewPropertyAnimator;
 
+import java.lang.ref.WeakReference;
+
+import io.codetail.animation.RevealAnimator.RevealInfo;
+
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+import static io.codetail.animation.RevealAnimator.CLIP_RADIUS;
+
 public class ViewAnimationUtils {
+
+    private final static boolean LOLLIPOP_PLUS = SDK_INT >= LOLLIPOP;
 
     public static final int SCALE_UP_DURATION = 500;
 
@@ -31,30 +42,39 @@ public class ViewAnimationUtils {
      * @param startRadius The starting radius of the animating circle.
      * @param endRadius The ending radius of the animating circle.
      */
-    public static io.codetail.animation.Animator createCircularReveal(View view,
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static SupportAnimator createCircularReveal(View view,
                                                 int centerX,  int centerY,
                                                 float startRadius, float endRadius) {
-
-        if(io.codetail.animation.Animator.LOLLIPOP){
-            return new io.codetail.animation.Animator(android.view.ViewAnimationUtils
-                    .createCircularReveal(view, centerX, centerY, startRadius, endRadius));
-        }
 
         if(!(view.getParent() instanceof RevealAnimator)){
             throw new IllegalArgumentException("View must be inside RevealFrameLayout or RevealLinearLayout.");
         }
 
         RevealAnimator revealLayout = (RevealAnimator) view.getParent();
-        revealLayout.setTarget(view);
-        revealLayout.setCenter(centerX, centerY);
+        revealLayout.attachRevealInfo(new RevealInfo(centerX, centerY, startRadius, endRadius,
+                new WeakReference<>(view)));
 
-        Rect bounds = new Rect();
-        view.getHitRect(bounds);
+        if(LOLLIPOP_PLUS){
+            return new SupportAnimatorLollipop(android.view.ViewAnimationUtils
+                    .createCircularReveal(view, centerX, centerY, startRadius, endRadius), revealLayout);
+        }
 
-        ObjectAnimator reveal = ObjectAnimator.ofFloat(revealLayout, "revealRadius", startRadius, endRadius);
-        reveal.addListener(new RevealAnimator.RevealFinished(revealLayout, bounds));
+        ObjectAnimator reveal = ObjectAnimator.ofFloat(revealLayout, CLIP_RADIUS,
+                startRadius, endRadius);
+        reveal.addListener(getRevealFinishListener(revealLayout));
 
-        return new io.codetail.animation.Animator(reveal);
+        return new SupportAnimatorPreL(reveal, revealLayout);
+    }
+
+    private static Animator.AnimatorListener getRevealFinishListener(RevealAnimator target){
+        if(SDK_INT >= 18){
+            return new RevealAnimator.RevealFinishedJellyBeanMr2(target);
+        }else if(SDK_INT >= 14){
+            return new RevealAnimator.RevealFinishedIceCreamSandwich(target);
+        }else {
+            return new RevealAnimator.RevealFinishedGingerbread(target);
+        }
     }
 
     /**
@@ -66,6 +86,7 @@ public class ViewAnimationUtils {
      * @param duration aniamtion duration
      * @param startDelay start delay before animation begin
      */
+    @Deprecated
     public static void liftingFromBottom(View view, float baseRotation, float fromY, int duration, int startDelay){
         ViewHelper.setRotationX(view, baseRotation);
         ViewHelper.setTranslationY(view, fromY);
@@ -89,6 +110,7 @@ public class ViewAnimationUtils {
      * @param duration aniamtion duration
      * @param startDelay start delay before animation begin
      */
+    @Deprecated
     public static void liftingFromBottom(View view, float baseRotation, int duration, int startDelay){
         ViewHelper.setRotationX(view, baseRotation);
         ViewHelper.setTranslationY(view, view.getHeight() / 3);
@@ -111,6 +133,7 @@ public class ViewAnimationUtils {
      * @param baseRotation initial Rotation X in 3D space
      * @param duration aniamtion duration
      */
+    @Deprecated
     public static void liftingFromBottom(View view, float baseRotation, int duration){
         ViewHelper.setRotationX(view, baseRotation);
         ViewHelper.setTranslationY(view, view.getHeight() / 3);
@@ -125,7 +148,7 @@ public class ViewAnimationUtils {
 
     }
 
-    public static class SimpleAnimationListener implements Animator.AnimatorListener{
+    static class SimpleAnimationListener implements Animator.AnimatorListener{
 
         @Override
         public void onAnimationStart(Animator animation) {

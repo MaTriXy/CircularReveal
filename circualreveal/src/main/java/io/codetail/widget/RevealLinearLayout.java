@@ -3,22 +3,22 @@ package io.codetail.widget;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Path;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.LinearLayoutCompat;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.LinearLayout;
 
-public class RevealLinearLayout extends LinearLayoutCompat {
+import io.codetail.animation.RevealAnimator;
+import io.codetail.animation.SupportAnimator;
+import io.codetail.animation.ViewAnimationUtils;
 
-    Path mRevealPath;
+public class RevealLinearLayout extends LinearLayout implements RevealAnimator{
 
-    boolean mClipOutlines;
-
-    float mCenterX;
-    float mCenterY;
-    float mRadius;
-
-    View mTarget;
+    private Path mRevealPath;
+    private final Rect mTargetBounds = new Rect();
+    private RevealInfo mRevealInfo;
+    private boolean mRunning;
+    private float mRadius;
 
     public RevealLinearLayout(Context context) {
         this(context, null);
@@ -29,55 +29,87 @@ public class RevealLinearLayout extends LinearLayoutCompat {
     }
 
     public RevealLinearLayout(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        
-        if(FEATURES_HONEYCOMB && !FEATURES_KITKAT){
-            setLayerType(LAYER_TYPE_SOFTWARE, null);
-        }
-
-
+        super(context, attrs);
         mRevealPath = new Path();
     }
 
-    private void setTarget(View view){
-        mTarget = view;
+    @Override
+    public void onRevealAnimationStart() {
+        mRunning = true;
     }
 
-    private void setCenter(float centerX, float centerY){
-        mCenterX = centerX;
-        mCenterY = centerY;
+    @Override
+    public void onRevealAnimationEnd() {
+        mRunning = false;
+        invalidate(mTargetBounds);
     }
 
-    private void setClipOutlines(boolean clip){
-        mClipOutlines = clip;
+    @Override
+    public void onRevealAnimationCancel() {
+        onRevealAnimationEnd();
     }
 
-    private void setRevealRadius(float radius){
+    /**
+     * Circle radius size
+     *
+     * @hide
+     */
+    @Override
+    public void setRevealRadius(float radius){
         mRadius = radius;
-        invalidate();
+        mRevealInfo.getTarget().getHitRect(mTargetBounds);
+        invalidate(mTargetBounds);
     }
 
-    private float getRevealRadius(){
+    /**
+     * Circle radius size
+     *
+     * @hide
+     */
+    @Override
+    public float getRevealRadius(){
         return mRadius;
     }
 
+    /**
+     * @hide
+     */
+    @Override
+    public void attachRevealInfo(RevealInfo info) {
+        mRevealInfo = info;
+    }
+
+    /**
+     * @hide
+     */
+    @Override
+    public SupportAnimator startReverseAnimation() {
+        if(mRevealInfo != null && mRevealInfo.hasTarget() && !mRunning) {
+            return ViewAnimationUtils.createCircularReveal(mRevealInfo.getTarget(),
+                    mRevealInfo.centerX, mRevealInfo.centerY,
+                    mRevealInfo.endRadius, mRevealInfo.startRadius);
+        }
+        return null;
+    }
 
     @Override
-    protected boolean drawChild(@NonNull Canvas canvas, @NonNull View child, long drawingTime) {
-        if (!mClipOutlines && child != mTarget)
-            return super.drawChild(canvas, child, drawingTime);
+    protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+        if(mRunning && child == mRevealInfo.getTarget()){
+            final int state = canvas.save();
 
-        final int state = canvas.save();
+            mRevealPath.reset();
+            mRevealPath.addCircle(mRevealInfo.centerX, mRevealInfo.centerY, mRadius, Path.Direction.CW);
 
-        mRevealPath.reset();
-        mRevealPath.addCircle(mCenterX, mCenterY, mRadius, Path.Direction.CW);
+            canvas.clipPath(mRevealPath);
 
-        canvas.clipPath(mRevealPath);
+            boolean isInvalided = super.drawChild(canvas, child, drawingTime);
 
-        boolean isInvalided = super.drawChild(canvas, child, drawingTime);
+            canvas.restoreToCount(state);
 
-        canvas.restoreToCount(state);
+            return isInvalided;
+        }
 
-        return isInvalided;
+        return super.drawChild(canvas, child, drawingTime);
     }
+
 }
