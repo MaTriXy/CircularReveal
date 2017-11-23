@@ -1,24 +1,18 @@
+[![](https://www.jitpack.io/v/Ozodrukh/CircularReveal.svg)](https://www.jitpack.io/#Ozodrukh/CircularReveal)
+
 CircularReveal
 ==============
 
-Lollipop ViewAnimationUtils.createCircularReveal for everyone 2.3+
+Lollipop ViewAnimationUtils.createCircularReveal for everyone 14+
 
-<img src="http://7sbnrp.com1.z0.glb.clouddn.com/lollipop2-CircularReveal.gif" />
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=tPjpF75-BWA
+" target="_blank">Yotube Video <br /> <img src="http://img.youtube.com/vi/tPjpF75-BWA/0.jpg"
+alt="Circular Reveal" width="320" height="240" border="10" /></a>
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=_vVpwzYb4Dg
-" target="_blank">Yotube Video <br /> <img src="http://img.youtube.com/vi/_vVpwzYb4Dg/0.jpg" 
-alt="Ripple DEMO" width="320" height="240" border="10" /></a>
+#### [Checout demo application ](https://github.com/ozodrukh/CircularReveal/releases)
 
-Sample
-======
-<a href="https://github.com/ozodrukh/CircularReveal/releases"> Sample & .aar file </a>
 
-Note
-====
-
-depends from Jake Wharton's NineOldsAndroid, or use my modifed version (included auto cancel)
-
-Using
+How to use:
 ======
 
 Use regular `RevealFrameLayout` & `RevealLinearLayout` don't worry, only target will be clipped :)
@@ -28,7 +22,7 @@ Use regular `RevealFrameLayout` & `RevealLinearLayout` don't worry, only target 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    
+
     <!-- Put more views here if you want, it's stock frame layout  -->
 
     <android.support.v7.widget.CardView
@@ -63,7 +57,8 @@ Use regular `RevealFrameLayout` & `RevealLinearLayout` don't worry, only target 
     int dy = Math.max(cy, myView.getHeight() - cy);
     float finalRadius = (float) Math.hypot(dx, dy);
 
-    SupportAnimator animator =
+    // Android native animator
+    Animator animator =
             ViewAnimationUtils.createCircularReveal(myView, cx, cy, 0, finalRadius);
     animator.setInterpolator(new AccelerateDecelerateInterpolator());
     animator.setDuration(1500);
@@ -71,30 +66,10 @@ Use regular `RevealFrameLayout` & `RevealLinearLayout` don't worry, only target 
 
 ```
 
-####API that need to mention 
-
-#####Cancel it! 
-
-```java
-
-   SupportAnimator animator = ... ;
-   animator.cancel();         
-
-```
-
-#####Reverse it!
-
-```java
-
-   SupportAnimator animator = ... ;
-   animator = animator.reverse(); // override with new one
-
-```
-
 How to add dependency
 =====================
 
-This library is not released in Maven Central, but instead you can use [JitPack](https://www.jitpack.io/)
+This library is not released in Maven Central, but instead you can use [JitPack](https://www.jitpack.io/#ozodrukh/CircularReveal)
 
 add remote maven url
 
@@ -110,7 +85,7 @@ then add a library dependency
 
 ```groovy
 	dependencies {
-	    compile ('com.github.ozodrukh:CircularReveal:1.1.1@aar') {
+	    compile ('com.github.ozodrukh:CircularReveal:2.0.1@aar') {
 	        transitive = true;
 	    }
 	}
@@ -122,18 +97,18 @@ License
 
     The MIT License (MIT)
 
-    Copyright (c) 2014 Abdullaev Ozodrukh
-    
+    Copyright (c) 2016 Abdullaev Ozodrukh
+
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
     copies of the Software, and to permit persons to whom the Software is
     furnished to do so, subject to the following conditions:
-    
+
     The above copyright notice and this permission notice shall be included in
     all copies or substantial portions of the Software.
-    
+
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE

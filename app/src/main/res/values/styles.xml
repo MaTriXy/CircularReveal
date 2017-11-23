@@ -46,7 +46,7 @@
         </attr>
         <!-- Defines whether the foreground drawable should be drawn inside the padding.
              This property is turned on by default. -->
-        <attr name="foregroundInsidePadding" format="boolean" />
+        <attr name="foregroundInsidePadding"  />
         <!-- Determines whether to measure all children or just those in
              the VISIBLE or INVISIBLE state when measuring. Defaults to false. -->
         <attr name="measureAllChildren" format="boolean" />
@@ -77,11 +77,12 @@
     <!-- Floating Action Button (FAB) -->
     <dimen name="fab_inner_circle_offset">8dp</dimen>
     <dimen name="fab_action_icon_size">24dp</dimen>
+    <dimen name="bottom_peek_height">56dp</dimen>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorAccent">#294BCC</item>
+        <item name="colorAccent">#8ae69d</item>
     </style>
 
 </resources>
